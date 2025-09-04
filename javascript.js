@@ -10,6 +10,65 @@ document.addEventListener("DOMContentLoaded", () => {
         { id: 3, nome: "Produto 3", img: "https://images.tcdn.com.br/img/img_prod/829162/produto_teste_nao_compre_81_1_2d7f0b8fa031db8286665740dd8de217.jpg", estoque: 8, adicionada: 0, preco: 15 }
     ];
 
+    //SESSÃO DA PESQUISA //
+
+    function pesquisarProduto() {
+        const searchInput = document.getElementById('searchInput');
+        const id = parseInt(searchInput.value);
+
+        const produto = listaProduto.find(p => p.id === id);
+
+        if (produto) {
+            mostrarModalProduto(produto);
+        } else {
+            alert("Produto não encontrado!");
+        }
+    }
+
+
+    function mostrarModalProduto(produto) {
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-2xl p-6 max-w-sm mx-4">
+                    <img src="${produto.img}" alt="${produto.nome}" class="w-full h-48 object-cover rounded-lg">
+                    <h2 class="text-xl font-bold mt-4">${produto.nome}</h2>
+                    <p class="text-gray-600">Estoque: ${produto.estoque}</p>
+                    <p class="text-lg font-semibold text-green-600">R$ ${produto.preco.toFixed(2)}</p>
+
+                 <!-- Botões de add no carrinho -->
+                <div class="flex items-center justify-center gap-3 mt-3">
+                    <button data-id="${produto.id}" class="btn-diminuir bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">-</button>
+                    <span class="text-lg font-semibold">${produto.adicionada}</span>
+                    <button data-id="${produto.id}" class="btn-aumentar bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+</button>
+                </div>
+
+
+                    <button onclick="this.closest('.fixed').remove()" class="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        `;
+
+
+        document.body.appendChild(modal);
+
+        modal.querySelectorAll(".btn-aumentar").forEach(btn => {
+            btn.addEventListener("click", () => aumentarQuantidade(Number(btn.dataset.id)));
+        });
+        modal.querySelectorAll(".btn-diminuir").forEach(btn => {
+            btn.addEventListener("click", () => diminuirQuantidade(Number(btn.dataset.id)));
+        });
+
+    }
+
+
+    const btnPesquisar = document.getElementById("btnPesquisar");
+    btnPesquisar.addEventListener("click", pesquisarProduto);
+
+// FIM SESSÃO PESQUISA //
+
     function renderizarProdutos() {
         produtosContainer.innerHTML = "";
         listaProduto.forEach(produto => {
@@ -125,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         doc.setFontSize(14);
         doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 20, y + 10);
 
-        doc.save("resumo_compra.pdf"); 
+        doc.save("resumo_compra.pdf");
 
         alert("Compra confirmada! Estoque atualizado e PDF gerado.");
 
