@@ -14,9 +14,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function pesquisarProduto() {
         const searchInput = document.getElementById('searchInput');
-        const id = parseInt(searchInput.value);
+        const valor = searchInput.value.trim();
+        
+        // Fiz uma attualização para procurar tanto por id tanto para nome 
 
-        const produto = listaProduto.find(p => p.id === id);
+        let produto;
+
+        if (!isNaN(valor) && valor !== "") {
+            const id = parseInt(valor);
+            produto = listaProduto.find(p => p.id === id);
+        } else {
+            const nome = valor.toLowerCase();
+            produto = listaProduto.find(p => p.nome.toLowerCase() === nome);
+        }
 
         if (produto) {
             mostrarModalProduto(produto);
@@ -24,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Produto não encontrado!");
         }
     }
-
 
     function mostrarModalProduto(produto) {
         const modal = document.createElement('div');
@@ -36,12 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p class="text-gray-600">Estoque: ${produto.estoque}</p>
                     <p class="text-lg font-semibold text-green-600">R$ ${produto.preco.toFixed(2)}</p>
 
-                 <!-- Botões de add no carrinho -->
-                <div class="flex items-center justify-center gap-3 mt-3">
-                    <button data-id="${produto.id}" class="btn-diminuir bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">-</button>
-                    <span class="text-lg font-semibold">${produto.adicionada}</span>
-                    <button data-id="${produto.id}" class="btn-aumentar bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+</button>
-                </div>
+                    <!-- Botões de add no carrinho -->
+                    <div class="flex items-center justify-center gap-3 mt-3">
+                        <button data-id="${produto.id}" class="btn-diminuir bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">-</button>
+                        <span id="qtdProdutoModal${produto.id}" class="text-lg font-semibold">0</span>
+                        <button data-id="${produto.id}" class="btn-aumentar bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">+</button>
+                    </div>
 
 
                     <button onclick="this.closest('.fixed').remove()" class="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg">
@@ -51,15 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `;
 
-
         document.body.appendChild(modal);
-
-        modal.querySelectorAll(".btn-aumentar").forEach(btn => {
-            btn.addEventListener("click", () => aumentarQuantidade(Number(btn.dataset.id)));
-        });
-        modal.querySelectorAll(".btn-diminuir").forEach(btn => {
-            btn.addEventListener("click", () => diminuirQuantidade(Number(btn.dataset.id)));
-        });
 
     }
 
@@ -98,10 +99,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function atualizarTela() {
         listaProduto.forEach(produto => {
+
             const qtdEl = document.getElementById("qtdProduto" + produto.id);
-            if (qtdEl) qtdEl.textContent = produto.adicionada;
+            if (qtdEl) qtdEl.textContent = produto.adicionada || 0;
+
+         
+            const qtdModalEl = document.getElementById("qtdProdutoModal" + produto.id);
+            if (qtdModalEl) qtdModalEl.textContent = produto.adicionada || 0;
+
         });
 
+        // Atualiza carrinho
         carrinho.innerHTML = "";
         const produtosNoCarrinho = listaProduto.filter(p => p.adicionada > 0);
 
@@ -110,10 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             produtosNoCarrinho.forEach(produto => {
                 carrinho.innerHTML += `
-                  <li class="flex justify-between items-center text-gray-800">
+                <li class="flex justify-between items-center text-gray-800">
                     <span>${produto.nome} x${produto.adicionada}</span>
                     <span>R$ ${(produto.adicionada * produto.preco).toFixed(2)}</span>
-                  </li>
+                </li>
                 `;
             });
         }
@@ -139,6 +147,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         atualizarTela();
     }
+
+    document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("btn-aumentar")) {
+            const id = parseInt(e.target.dataset.id);
+            if (!isNaN(id)) aumentarQuantidade(id);
+        }
+        if (e.target.classList.contains("btn-diminuir")) {
+            const id = parseInt(e.target.dataset.id);
+            if (!isNaN(id)) diminuirQuantidade(id);
+        }
+    });
 
     btnConfirma.addEventListener("click", () => {
         const produtosComprados = listaProduto.filter(p => p.adicionada > 0);
