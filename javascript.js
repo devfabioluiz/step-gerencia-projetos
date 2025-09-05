@@ -89,12 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         });
 
-        document.querySelectorAll(".btn-aumentar").forEach(btn => {
-            btn.addEventListener("click", () => aumentarQuantidade(Number(btn.dataset.id)));
-        });
-        document.querySelectorAll(".btn-diminuir").forEach(btn => {
-            btn.addEventListener("click", () => diminuirQuantidade(Number(btn.dataset.id)));
-        });
     }
 
     function atualizarTela() {
